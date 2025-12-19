@@ -1,16 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../services/api";
-
+import { loginAPI, refreshTokenAPI, logoutAPI } from "./authAPI";
 
 // Login utilisateur
 export const login = createAsyncThunk(
     "auth/login",
     async (data, thunkAPI) => {
         try {
-            const res = await api.post("/auth/login", data);
-            return res.data;
+            return await loginAPI(data);
         } catch (error) {
-            return thunkAPI.rejectWithValue(error.response.data);
+            return thunkAPI.rejectWithValue(error.response?.data);
         }
     }
 );
@@ -20,11 +18,10 @@ export const refreshToken = createAsyncThunk(
     "auth/refresh-token",
     async (_, thunkAPI) => {
         try {
-            const res = await api.post("/auth/refresh-token");
-            return res.data;
+            return await refreshTokenAPI();
         } catch (error) {
             return thunkAPI.rejectWithValue(
-                error.response?.data || { message: "Refresh échouer" }
+                error.response?.data || { message: "Refresh échoué" }
             );
         }
     }
@@ -35,9 +32,9 @@ export const logoutUser = createAsyncThunk(
     "auth/logout",
     async (_, thunkAPI) => {
         try {
-            await api.post("/auth/logout");
+            await logoutAPI();
         } catch (error) {
-            return thunkAPI.rejectWithValue(error.response.data);
+            return thunkAPI.rejectWithValue(error.response?.data);
         }
     }
 );
