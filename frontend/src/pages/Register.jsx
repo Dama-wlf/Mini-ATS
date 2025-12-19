@@ -58,6 +58,7 @@ const Register = () => {
                                 label="Nom d'utilisateur"
                                 name="userName"
                                 type="text"
+                                hasIcon={true}
                                 placeholder="Votre nom d'utilisateur"
                                 value={formData.userName}
                                 onChange={handleChange}
@@ -72,6 +73,7 @@ const Register = () => {
                                 label="Email"
                                 name="email"
                                 type="email"
+                                hasIcon={true}
                                 placeholder="votre@entreprise.com"
                                 value={formData.email}
                                 onChange={handleChange}
@@ -86,6 +88,7 @@ const Register = () => {
                                 label="Mot de passe"
                                 name="password"
                                 type="password"
+                                hasIcon={true}
                                 placeholder="••••••••"
                                 value={formData.password}
                                 onChange={handleChange}
@@ -94,7 +97,7 @@ const Register = () => {
                             />
                         </div>
 
-                        <Button size="md" rounded="lg" fullWidth disabled={isLoading}>
+                        <Button type="submit" size="md" rounded="lg" fullWidth disabled={isLoading}>
                             {isLoading ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <Loader2 className="h-4 w-4 animate-spin" />
