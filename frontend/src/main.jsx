@@ -7,16 +7,19 @@ import { BrowserRouter } from 'react-router-dom'
 import store from './app/store.js'
 import './services/setupInterceptors.js'
 import setupInterceptors from './services/setupInterceptors.js'
+import { ToastProvider } from "./context/ToastContext";
 
 setupInterceptors(store)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </ToastProvider>
     </Provider>
-  </StrictMode>,
+  </StrictMode>
 )
 
