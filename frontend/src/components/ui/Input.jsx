@@ -4,9 +4,11 @@ export default function Input({
   value,
   placeholder,
   onChange,
-  name,          
+  name,
+  id,
   size = "md",
-  ...props       
+  hasIcon = false,
+  ...props
 }) {
   const sizes = {
     sm: "px-2 py-1 text-sm",
@@ -16,15 +18,30 @@ export default function Input({
 
   return (
     <div className="mb-4">
-      {label && <label className="block mb-1 font-medium">{label}</label>}
+      {label && (
+        <label
+          htmlFor={id || name}
+          className="block mb-1 font-medium text-text"
+        >
+          {label}
+        </label>
+      )}
+
       <input
+        id={id || name}
         type={type}
-        name={name}             // passer name
+        name={name}
         value={value}
         placeholder={placeholder}
         onChange={onChange}
-        className={`w-full h-10 pl-10 border border-gray-300 text-sm rounded-xl ring-offset-background focus-visible:outline-none ${sizes[size]} focus:ring-1 focus:ring-primary bg-background`}
-        {...props}             
+        className={`
+          w-full h-11 border border-gray-300 text-sm rounded-xl
+          focus:outline-none focus:ring-1 focus:ring-primary
+          bg-background
+          ${sizes[size]}
+          ${hasIcon ? "pl-10" : ""}
+        `}
+        {...props}
       />
     </div>
   );

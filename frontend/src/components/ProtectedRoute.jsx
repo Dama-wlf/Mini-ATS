@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 
  //Composant pour protéger les routes
@@ -20,7 +20,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   //Connecté, affiche les routes protége
-  return children;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;

@@ -1,18 +1,23 @@
 export default function Button({
   children,
-  variant = "primary",  // couleur
-  size = "md",          // taille
-  rounded = "md",       // arrondi
-  fullWidth = false,    // largeur complète
+  variant = "primary",
+  size = "md",
+  rounded = "md",
+  fullWidth = false,
+  height = "",
+  width = "",
+  className = "",
+  type = "button",
   ...props
 }) {
-  const base = "font-medium transition focus:outline-none";
+  const base =
+    "inline-flex items-center justify-center gap-2 font-medium transition focus:outline-none";
 
   const variants = {
     primary: "bg-primary text-white hover:bg-secondary",
     secondary: "bg-secondary text-white hover:bg-primary",
     danger: "bg-danger text-white hover:bg-red-700",
-    outline: "border border-primary text-primary",
+    outline: "border border-primary text-primary hover:bg-primary/10",
   };
 
   const sizes = {
@@ -29,11 +34,19 @@ export default function Button({
     full: "rounded-full",
   };
 
-  const widthClass = fullWidth ? "w-full" : "";
-
   return (
     <button
-      className={`${base} ${variants[variant]} ${sizes[size]} ${round[rounded]} ${widthClass}`}
+      type={type}
+      className={`
+        ${base}
+        ${variants[variant]}
+        ${sizes[size]}
+        ${round[rounded]}
+        ${fullWidth ? "w-full" : ""}
+        ${height}
+        ${width}
+        ${className}
+      `}
       {...props}
     >
       {children}

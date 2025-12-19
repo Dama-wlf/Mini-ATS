@@ -1,5 +1,6 @@
 export { default as Logo } from "./Logo";
 export { default as AuthHeader } from "./AuthHeader";
+export { default as StatusBadge } from "./StatusBadge";
 export { default as Button } from "./Button";
 export { default as Input } from "./Input";
 export { default as Card } from "./Card";
