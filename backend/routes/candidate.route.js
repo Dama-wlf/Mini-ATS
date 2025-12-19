@@ -9,8 +9,10 @@ import {
      getRejectedCandidates, 
      rejectCandidate, 
      deleteCandidate, } from "../controllers/candidate.controller.js";
+import protect from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+router.use(protect);
 
 router.get("/", getAllCandidate);
 router.get("/:id", getCandidate);
