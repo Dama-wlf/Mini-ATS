@@ -56,8 +56,8 @@ export const login = async (req, res) => {
             maxAge: 7*24*60*60*1000 //7 jours
         });
 
-        res.status(200).json({_id: user._id, userName: user.userName, email: user.email,accessToken: accessToken});
-    
+        res.status(200).json({  user: { _id: user._id, userName: user.userName, email: user.email }, accessToken: accessToken });
+
     } catch (error) {
         console.error("Login error", error.message);
         res.status(500).json({succes:false, message: "Erreur serveur"});
@@ -76,18 +76,32 @@ export const logout = async (req, res) => {
 
 //Contrôleur pour rafraîchir le token d'accès.
 export const refreshToken = async (req, res) => {
-    const token = req.cookies.refreshToken; 
-    if(!token){
-        return res.status(401).json({succes:false, message: "Non autorisé, token manquant"});
+  const token = req.cookies.refreshToken;
+  if (!token) {
+    return res.status(401).json({ message: "Non autorisé" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+    const user = await User.findById(decoded.id)
+      .select("_id userName email");
+
+    if (!user) {
+      return res.status(401).json({ message: "Utilisateur introuvable" });
     }
 
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-        
-        const newAccessToken = generateAccessToken(decoded.id);
-        res.status(200).json({accessToken: newAccessToken});
-    } catch (error) {
-        console.error("Refresh token error", error.message);
-        return res.status(401).json({succes:false, message: "Token invalide"});
-    }
-}
+    const newAccessToken = generateAccessToken(user._id);
+
+    res.status(200).json({
+      user: {
+        id: user._id,
+        userName: user.userName,
+        email: user.email,
+      },
+      accessToken: newAccessToken,
+    });
+  } catch (error) {
+    return res.status(401).json({ message: "Token invalide" });
+  }
+};

@@ -5,10 +5,10 @@ import Candidate from "../models/candidate.model.js";
 
 
 // Récupérer tous les candidats
- 
+
 export const getAllCandidate = async (req, res) => {
     try {
-        const candidates = await Candidate.find({}); // pas de filtre → tous les candidats
+        const candidates = await Candidate.find({}); 
         res.status(200).json({ success: true, data: candidates });
 
     } catch (error) {
@@ -19,24 +19,24 @@ export const getAllCandidate = async (req, res) => {
 
 // Recuperer un candidat
 export const getCandidate = async (req, res) => {
-  const candidateId = req.params.id;
+    const candidateId = req.params.id;
 
-  if (!mongoose.Types.ObjectId.isValid(candidateId)) {
-    return res.status(400).json({ success: false, message: "ID invalide" });
-  }
-
-  try {
-    const candidate = await Candidate.findById(candidateId);
-
-    if (!candidate) {
-      return res.status(404).json({ success: false, message: "Candidat non trouvé" });
+    if (!mongoose.Types.ObjectId.isValid(candidateId)) {
+        return res.status(400).json({ success: false, message: "ID invalide" });
     }
 
-    res.status(200).json({ success: true, data: candidate });
-  } catch (error) {
-    console.error("Erreur getCandidate :", error.message);
-    res.status(500).json({ success: false, message: "Erreur du serveur" });
-  }
+    try {
+        const candidate = await Candidate.findById(candidateId);
+
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: "Candidat non trouvé" });
+        }
+
+        res.status(200).json({ success: true, data: candidate });
+    } catch (error) {
+        console.error("Erreur getCandidate :", error.message);
+        res.status(500).json({ success: false, message: "Erreur du serveur" });
+    }
 };
 
 
