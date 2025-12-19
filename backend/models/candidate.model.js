@@ -1,39 +1,63 @@
+
 import mongoose from "mongoose";
 
 // Modèle pour les candidats dans la base de données MongoDB.
-const candidateSchema = mongoose.Schema(
-    {
-        firstName: {
-            type: String,
-            required: true,
-        },
-        lastName: {
-            type: String,
-            required: true,
-        },
-        email: {
-            type: String,
-            required: true,
-        },
-        phone: {
-            type: String,
-            required: true,
-        },
-        cvUrl: {
-            type: String
-        },
-        status: {
-            type: String,
-            enum: ['new', 'interview', 'test', 'hired', 'rejected'],
-            default: 'new'
-        },
-        rejectedAt: date
+const candidateSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
     },
-    {
-        timestamps: true
-    }
+
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+
+    phone: {
+      type: String,
+      required: true,
+    },
+
+    position: {
+      type: String,
+      required: true,
+      trim: true, // Poste visé
+    },
+
+    note: {
+      type: String, // Commentaire optionnel
+    },
+
+    cv: {
+      fileName: String,
+      filePath: String,
+      fileType: String,
+      fileSize: Number,
+    },
+
+    status: {
+      type: String,
+      enum: ["new", "interview", "test", "hired", "rejected"],
+      default: "new",
+    },
+
+    rejectedAt: {
+      type: Date,
+    },
+  },
+  { timestamps: true }
 );
 
 const Candidate = mongoose.model("Candidate", candidateSchema);
-
 export default Candidate;
