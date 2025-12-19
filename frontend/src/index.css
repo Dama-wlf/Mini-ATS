@@ -9,6 +9,15 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+.sidebar-item {
+  @apply flex items-center gap-3 rounded-md px-3 py-2 text-sidebarText transition-colors hover:bg-sidebarHover;
+}
+
+.sidebar-item-active {
+  @apply bg-sidebarActive text-white;
+}
+
+
 @keyframes slide-in {
   from {
     transform: translateX(120%);
