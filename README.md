@@ -54,7 +54,8 @@ Architecture
 
 - API REST sécurisée
 
-3. Installation du Projet
+# Installation du Projet
+3. Installation
 3.1 Prérequis
 
 - Node.js version 18 ou supérieure
@@ -73,11 +74,14 @@ Architecture
 - MONGO_URI=votre mongo_uri
 - JWT_SECRET= votre_code
 - JWT_REFRESH_SECRET = votre_code
-
+  
+- Le backend fonctionne sur http://localhost:5000
+  
 3.4 Installation Frontend
 - cd frontend
 - npm install
 - npm run dev
+- L’application frontend se lancera par défaut sur http://localhost:5173
 
 
 4. Fonctionnement de l’Application
