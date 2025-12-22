@@ -3,19 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { fetchCandidates } from "../features/candidate/candidateSlice.js";
 import CandidateProfileModal from "../components/CandidateProfilModal.jsx";
 import StatusBadge from "../components/ui/StatusBadge.jsx";
-import { Button } from "../components/ui";
 import { Link } from "react-router-dom";
-import {
-    Users,
-    UserPlus,
-    Columns3,
-    FolderArchive,
-    MessageSquare,
-    ClipboardCheck,
-    UserCheck,
-    UserX,
-    TrendingUp,
-} from "lucide-react";
+import { Users, UserPlus, Columns3, FolderArchive, MessageSquare, ClipboardCheck, UserCheck, UserX, TrendingUp} from "lucide-react";
 
 export default function Dashboard() {
     const dispatch = useDispatch();
@@ -48,7 +37,7 @@ export default function Dashboard() {
     const actionCards = [
         { label: "Ajouter un candidat", to: "/add-candidate", icon: UserPlus, description: 'Ajouter un nouveau candidat au système' },
         { label: "Pipeline", to: "/pipeline", icon: Columns3, description: 'Gérer les candidats à travers les étapes' },
-        { label: "Candidats rejetés", to: "/cv-bank", icon: FolderArchive, description: 'Parcourir les candidats rejetés' },
+        { label: "Banque de CV", to: "/cv-bank", icon: FolderArchive, description: 'Parcourir les candidats rejetés' },
         { label: "Liste des candidats", to: "/candidates", icon: Users, description: 'Voir tous les candidats' },
     ];
 
@@ -98,7 +87,7 @@ export default function Dashboard() {
             <div>
                 <h2 className="text-xl font-semibold text-text mb-4">Candidats Récents</h2>
                 <div className="bg-card rounded-xl shadow divide-y divide-muted/30">
-                    {candidates.slice(0, 5).map((c) => (
+                    {candidates.slice(-5).reverse().map((c) => (
                         <div
                             key={c._id}
                             className="flex items-center justify-between p-4 hover:bg-muted/10 cursor-pointer"
