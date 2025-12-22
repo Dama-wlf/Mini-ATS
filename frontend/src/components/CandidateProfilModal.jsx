@@ -18,14 +18,14 @@ export default function CandidateProfileModal({ candidate, open, onOpenChange })
 
   const handleClose = () => onOpenChange(false);
 
-  const handleDownloadCV = () => {
-    if (candidate.cv) {
-      const link = document.createElement("a");
-      link.href = candidate.cv.filePath;
-      link.download = candidate.cv.fileName || `${candidate.firstName}_${candidate.lastName}_CV`;
-      link.click();
-    }
-  };
+    const handleDownloadCV = () => {
+      if (candidate.cv) {
+        const link = document.createElement("a");
+        link.href = `http://localhost:5000/uploads/cv/${candidate.cv.fileName}`;
+        link.download = candidate.cv.fileName || `${candidate.firstName}_${candidate.lastName}_CV`;
+        link.click();
+      }
+    };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">

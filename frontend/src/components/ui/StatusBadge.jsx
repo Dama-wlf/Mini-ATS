@@ -3,8 +3,8 @@ export default function StatusBadge({ status }) {
 
   const statusColors = {
     new: "text-primary",          // nouveau candidat
-    interview: "text-blue-700",   // en entretien
-    test: "text-purple-500",      // en test
+    interview: "text-yellow-500",   // en entretien
+    test: "text-secondary",      // en test
     hired: "text-green-500",      // embauché
     rejected: "text-red-500",     // rejeté
   };
