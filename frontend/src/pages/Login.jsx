@@ -21,6 +21,17 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+
+        const passwordRegex =
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
+        if (!passwordRegex.test(formData.password)) {
+            setError(
+                "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial."
+            );
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -28,7 +39,7 @@ const Login = () => {
             if (login.fulfilled.match(result)) {
                 navigate("/");
             } else {
-                setError("Email ou mot de passe incorrect" );
+                setError("Email ou mot de passe incorrect");
             }
         } catch (err) {
             setError("Erreur serveur");
@@ -36,6 +47,7 @@ const Login = () => {
             setIsLoading(false);
         }
     };
+
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -88,6 +100,10 @@ const Login = () => {
                                 />
                             </div>
                         </div>
+                        <p className="text-xs text-gray-500">
+                            Minimum 8 caractères, avec majuscule, minuscule, chiffre et symbole.
+                        </p>
+
 
                         <Button type="submit" size="md" rounded="lg" fullWidth disabled={isLoading}>
                             {isLoading ? (

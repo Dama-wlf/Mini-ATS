@@ -65,6 +65,7 @@ export default function CandidatesList() {
     return result;
   }, [allCandidates, search, positionFilter, statusFilter, sortOrder]);
 
+  const totalPages = Math.ceil(filteredCandidates.length / ITEMS_PER_PAGE);
 
   const paginatedCandidates = filteredCandidates.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -187,20 +188,56 @@ export default function CandidatesList() {
                 <TableCell>
                   <div onClick={(e) => e.stopPropagation()}>
 
-                  <ActionMenu
-                    onEdit={() => navigate(`/edit-candidate/${c._id}`)}
-                    onMoveToCVBank={() => handleReject(c._id)}
-                    onDelete={() => handleDelete(c._id)}
-                  />
+                    <ActionMenu
+                      onEdit={() => navigate(`/edit-candidate/${c._id}`)}
+                      onMoveToCVBank={() => handleReject(c._id)}
+                      onDelete={() => handleDelete(c._id)}
+                    />
                   </div>
                 </TableCell>
-                
+
               </TableRow>
             ))
           )}
         </TableBody>
       </Table>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Page {currentPage} sur {totalPages}
+          </p>
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => p - 1)}
+            >
+              Précédent
+            </Button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={page === currentPage ? "default" : "outline"}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+
+            <Button
+              variant="outline"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => p + 1)}
+            >
+              Suivant
+            </Button>
+          </div>
+        </div>
+      )}
 
 
       <CandidateProfileModal

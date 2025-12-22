@@ -109,7 +109,7 @@ export default function CandidateForm() {
 
         {/* Poste */}
         <section className="bg-card border rounded-2xl p-6">
-          <h2 className="font-semibold mb-6">Poste</h2>
+          <h2 className="font-semibold mb-6">Poste et Note</h2>
           <SelectField
             name="position"
             value={formData.position}
@@ -121,6 +121,7 @@ export default function CandidateForm() {
             }))}
           />
 
+          {/* Note */}
           <textarea
             name="note"
             value={formData.note}
