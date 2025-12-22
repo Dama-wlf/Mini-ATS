@@ -5,7 +5,6 @@ import App from './App.jsx'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import store from './app/store.js'
-import './services/setupInterceptors.js'
 import setupInterceptors from './services/setupInterceptors.js'
 import { ToastProvider } from "./context/ToastContext";
 
