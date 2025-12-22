@@ -55,7 +55,7 @@ Architecture
 - API REST sécurisée
 
 3. Installation du Projet
-Prérequis
+3.1 Prérequis
 
 - Node.js version 18 ou supérieure
 
@@ -63,21 +63,21 @@ Prérequis
 
 - npm ou yarn
 
-* Installation Backend
-cd backend
-npm install
-npm run dev
+3.2 Installation Backend
+- cd backend
+- npm install
+- npm run dev
 
-* Créer un fichier .env dans le dossier backend :
-PORT=5000
-MONGO_URI=votre mongo_uri
-JWT_SECRET= votre_code
-JWT_REFRESH_SECRET = votre_code
+3.3 Créer un fichier .env dans le dossier backend :
+- PORT=5000
+- MONGO_URI=votre mongo_uri
+- JWT_SECRET= votre_code
+- JWT_REFRESH_SECRET = votre_code
 
-* Installation Frontend
-cd frontend
-npm install
-npm run dev
+3.4 Installation Frontend
+- cd frontend
+- npm install
+- npm run dev
 
 
 4. Fonctionnement de l’Application
