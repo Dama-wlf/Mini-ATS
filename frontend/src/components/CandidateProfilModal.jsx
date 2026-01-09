@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Button } from "./ui";
-import {StatusBadge} from "./ui";
+import { StatusBadge } from "./ui";
 import {
   Download,
   Mail,
@@ -18,18 +18,19 @@ export default function CandidateProfileModal({ candidate, open, onOpenChange })
 
   const handleClose = () => onOpenChange(false);
 
-    const handleDownloadCV = () => {
-      if (candidate.cv) {
-        const link = document.createElement("a");
-        link.href = `http://localhost:5000/uploads/cv/${candidate.cv.fileName}`;
-        link.download = candidate.cv.fileName || `${candidate.firstName}_${candidate.lastName}_CV`;
-        link.click();
-      }
-    };
+  const handleDownloadCV = () => {
+    if (candidate.cv) {
+      const link = document.createElement("a");
+      link.href = `http://localhost:5000/uploads/cv/${candidate.cv.fileName}`;
+      link.download = candidate.cv.fileName || `${candidate.firstName}_${candidate.lastName}_CV`;
+      link.click();
+    }
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="relative w-full max-w-md mx-4 bg-card rounded-xl shadow-lg p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick= {handleClose}
+>
+      <div className="relative w-full max-w-md mx-4 bg-card rounded-xl shadow-lg p-6" onClick={(e) => e.stopPropagation()}>
         {/*  button fermer */}
         <button
           onClick={handleClose}
@@ -103,7 +104,7 @@ export default function CandidateProfileModal({ candidate, open, onOpenChange })
 
         {/* CV Download */}
         <div className="mt-4">
-          {candidate.cv ? (
+          {candidate?.cv ? (
             <Button variant="outline" className="w-full h-12" onClick={handleDownloadCV}>
               <Download className="h-4 w-4" /> Télécharger CV
               <span className=" text-xs text-muted">(CV_{candidate.firstName})</span>
