@@ -1,50 +1,26 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, data } from "react-router-dom";
 import api from "../services/api";
 import { Input, Button, AuthHeader } from "../components/ui";
 import { Mail, Lock, User, Loader2, Briefcase } from "lucide-react";
+import { useForm } from "react-hook-form";
 
 const Register = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        userName: "",
-        email: "",
-        password: "",
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [serverError, setServerError] = useState("");
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
+    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({ mode: "onSubmit", defaultValues: { userName: "", email: "", password: "" } });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError("");
-
-        const passwordRegex =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
-
-        if (!passwordRegex.test(formData.password)) {
-            setError(
-                "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial."
-            );
-            return;
-        }
-
-        setIsLoading(true);
+    const onSubmit = async (formData) => {
 
         try {
             await api.post("/auth/register", formData);
             navigate("/login");
         } catch (err) {
-            console.error("Inscription échouée :", err);
-            setError("Échec de l'inscription. Vérifiez vos informations.");
-        } finally {
-            setIsLoading(false);
+            setServerError("Échec de l'inscription. Vérifiez vos informations.");
         }
-    };
+    }
+
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-background p-4">
@@ -61,19 +37,18 @@ const Register = () => {
                         </p>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                         {/* Username */}
                         <div className="relative">
                             <User className="absolute left-3 top-10 h-4 w-4 text-gray-400" />
                             <Input
                                 label="Nom d'utilisateur"
-                                name="userName"
                                 type="text"
-                                hasIcon={true}
+                                hasIcon
                                 placeholder="Votre nom d'utilisateur"
-                                value={formData.userName}
-                                onChange={handleChange}
-                                required
+                                error={errors.userName?.message}
+                                {...register("userName", { required: "Nom d'utilisateur obligatoire" })}
+
                             />
                         </div>
 
@@ -82,13 +57,11 @@ const Register = () => {
                             <Mail className="absolute left-3 top-10 h-4 w-4 text-gray-400" />
                             <Input
                                 label="Email"
-                                name="email"
                                 type="email"
-                                hasIcon={true}
+                                hasIcon
                                 placeholder="votre@entreprise.com"
-                                value={formData.email}
-                                onChange={handleChange}
-                                required
+                                error={errors.email?.message}
+                                {...register("email", { required: "Email obligatiore", pattern: { value: /^\S+@\S+\.\S+$/, message: "Email invalide" } })}
                             />
                         </div>
 
@@ -97,21 +70,21 @@ const Register = () => {
                             <Lock className="absolute left-3 top-10 h-4 w-4 text-gray-400" />
                             <Input
                                 label="Mot de passe"
-                                name="password"
                                 type="password"
-                                hasIcon={true}
+                                hasIcon
                                 placeholder="••••••••"
-                                value={formData.password}
-                                onChange={handleChange}
-                                required
-                                minLength={8}
+                                error={errors.password?.message}
+                                {...register("password", {
+                                    required: "Mot de passe obligatoire", minLength: { value: 8, message: "Minimum 8 caractères" },
+                                    pattern: { value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/, message: "Doit contenir majuscule, minuscule, chiffre et symbole" }
+                                })}
                             />
                         </div>
                         <p className="text-xs text-gray-500">
                             Minimum 8 caractères, avec majuscule, minuscule, chiffre et symbole.
                         </p>
-                        <Button type="submit" size="md" rounded="lg" fullWidth disabled={isLoading}>
-                            {isLoading ? (
+                        <Button type="submit" size="md" rounded="lg" fullWidth disabled={isSubmitting}>
+                            {isSubmitting ? (
                                 <span className="flex items-center justify-center gap-2">
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                     Inscription...
@@ -122,6 +95,8 @@ const Register = () => {
                         </Button>
                     </form>
 
+                    {serverError && <p className="mt-2 text-center text-sm text-red-500">{serverError}</p>}
+
                     <p className="mt-6 text-center text-xs text-gray-600">
                         Vous avez déjà un compte ?{" "}
                         <Link to="/login" className="text-primary font-medium">
@@ -129,7 +104,6 @@ const Register = () => {
                         </Link>
                     </p>
 
-                    {error && <p className="mt-2 text-center text-sm text-red-500">{error}</p>}
                 </div>
             </div>
         </div>

@@ -2,32 +2,34 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { createCandidate, updateCandidate, fetchCandidateById, clearSelectedCandidate } from "../features/candidate/candidateSlice.js";
-import { Button, Input, SelectField } from "../components/ui";
-import { Upload, X, FileText, Save } from "lucide-react";
+import { Button, Input } from "../components/ui";
+import { Upload, X, FileText, Save, Loader2 } from "lucide-react";
 import { useToast } from "../context/ToastContext.jsx";
+import { useForm } from "react-hook-form";
 
 const POSITIONS = ["Frontend Developeur", "Backend Developeur", "Fullstack Developeur", "UI/UX Designer"];
 
 export default function CandidateForm() {
   const { id } = useParams();
+  const isEditing = Boolean(id);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { showToast } = useToast();
 
-  const { selectedCandidate, loading } = useSelector(
-    (state) => state.candidates
-  );
+  const { selectedCandidate, loading } = useSelector((state) => state.candidates);
 
-  const isEditing = Boolean(id);
-
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    position: "",
-    note: "",
-    status: "new",
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting }, } = useForm({
+    mode: "onSubmit",
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      position: "",
+      note: "",
+      status: "new",
+      cv: null
+    },
   });
 
   const [cvFile, setCvFile] = useState(null);
@@ -40,7 +42,7 @@ export default function CandidateForm() {
 
   useEffect(() => {
     if (isEditing && selectedCandidate) {
-      setFormData({
+      reset({
         firstName: selectedCandidate.firstName,
         lastName: selectedCandidate.lastName,
         email: selectedCandidate.email,
@@ -51,12 +53,7 @@ export default function CandidateForm() {
       });
       setExistingCv(selectedCandidate.cv || null);
     }
-  }, [selectedCandidate, isEditing]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, [selectedCandidate, isEditing, reset]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -71,18 +68,21 @@ export default function CandidateForm() {
     setExistingCv(null);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const onSubmit = async (values) => {
+    const formData = new FormData();
 
-    const data = new FormData();
-    for (const key in formData) data.append(key, formData[key]);
-    if (cvFile) data.append("cv", cvFile);
+    Object.entries(values).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    if (cvFile) formData.append("cv", cvFile);
 
     if (isEditing) {
-      dispatch(updateCandidate({ id, formData: data }));
+      await dispatch(updateCandidate({ id, formData }));
     } else {
-      dispatch(createCandidate(data));
+      await dispatch(createCandidate(formData));
     }
+
     showToast("success", `Candidat ${isEditing ? "mis à jour" : "créé"} avec succès !`);
     navigate("/candidates");
   };
@@ -95,46 +95,53 @@ export default function CandidateForm() {
       <p className="text-muted mb-6">{isEditing ? "Mettre à jour les informations du candidat" : "Créer un nouveau candidat"} </p>
 
 
-      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" encType="multipart/form-data">
         {/* Infos personnelles */}
         <section className="bg-card border rounded-2xl p-6">
           <h2 className="font-semibold mb-6">Informations personnelles</h2>
           <div className="grid sm:grid-cols-2 gap-5">
-            <Input label="Nom *" name="lastName" placeholder="Nom du candidat" value={formData.lastName} onChange={handleChange} />
-            <Input label="Prénom *" name="firstName" placeholder="Prénom du candidat" value={formData.firstName} onChange={handleChange} />
-            <Input label="Email *" name="email" type="email" placeholder="Adresse Email professionnelle" value={formData.email} onChange={handleChange} />
-            <Input label="Téléphone *" name="phone" placeholder="Numéro de Téléphone" value={formData.phone} onChange={handleChange} />
+            <Input label="Nom *" placeholder="Nom du candidat" error={errors.firstName?.message}  {...register("firstName", { required: "Nom obligatoire" })} />
+            <Input label="Prénom *" placeholder="Prénom du candidat" error={errors.lastName?.message}  {...register("lastName", { required: "Prénom obligatoire" })} />
+            <Input label="Email *" type="email" placeholder="Adresse Email professionnelle" error={errors.email?.message} {...register("email",
+              { required: "Email obligatoire", pattern: { value: /^\S+@\S+\.\S+$/, message: "Email invalide", }, })} />
+            <Input label="Téléphone *" placeholder="Numéro de Téléphone" error={errors.phone?.message}  {...register("phone",
+              { required: "Numéro de téléphone obligatoire", minLength: { value: 10, message: "Minimum 10 chiffres" }, pattern: { value: /^[0-9+\-\s]*$/, message: "Numéro de téléphone invalide", } })} />
           </div>
         </section>
 
         {/* Poste */}
         <section className="bg-card border rounded-2xl p-6">
-          <h2 className="font-semibold mb-6">Poste et Note</h2>
-          <SelectField
-            name="position"
-            value={formData.position}
-            onChange={handleChange}
-            placeholder="Sélectionner un poste"
-            options={POSITIONS.map((p) => ({
-              value: p,
-              label: p,
-            }))}
-          />
+          <h2 className="font-semibold mb-1">Poste *</h2>
+          <select
+            className="w-full rounded-md border p-3 bg-background"
+            {...register("position", { required: "Poste obligatoire" })}>
+            <option value="">Sélectionner un poste</option>
+            {POSITIONS.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+
+          {errors.position && (
+            <p className="mt-1 text-sm text-red-500">
+              {errors.position.message}
+            </p>
+          )}
 
           {/* Note */}
+          <h2 className="font-semibold mt-6">Note ( Facultatif )</h2>
           <textarea
-            name="note"
-            value={formData.note}
-            onChange={handleChange}
             rows={4}
             placeholder="Notes"
-            className="mt-4 w-full rounded-md border p-3 resize-none focus:outline-none focus:ring-1 focus:ring-primary bg-background"
+            className="mt-1 w-full rounded-md border p-3 resize-none focus:outline-none focus:ring-1 focus:ring-primary bg-background"
+            {...register("note")}
           />
         </section>
 
         {/* CV */}
         <section className="bg-card border rounded-2xl p-6">
-          <h2 className="font-semibold mb-6">CV</h2>
+          <h2 className="font-semibold mb-1">CV *</h2>
 
           {cvFile || existingCv ? (
             <div className="flex justify-between items-center border rounded-xl p-4">
@@ -151,7 +158,7 @@ export default function CandidateForm() {
               <Upload className="text-primary mb-3" />
               <span>Importer un CV</span>
               <p className="text-sm text-muted">PDF, DOCX ou IMAGE (max. 10 MB)</p>
-              <input type="file" className="hidden" onChange={handleFileChange} />
+              <Input type="file" className="hidden" error={errors.cv?.message}  {...register("cv", { required: "Le CV est obligatoire" })} onChange={handleFileChange} />
             </label>
           )}
         </section>
@@ -161,13 +168,21 @@ export default function CandidateForm() {
           <Button variant="outline" type="button" onClick={() => navigate(-1)}>
             Annuler
           </Button>
-          <Button type="submit">
-            <Save className="h-4 w-4 mr-2" />
-            {isEditing ? "Mettre à jour" : "Enregistrer"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sauvegarde...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                {isEditing ? "Mettre à jour" : "Enregistrer"}
+              </span>
+            )}
           </Button>
         </div>
       </form>
-
     </div>
 
   );
