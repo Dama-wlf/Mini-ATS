@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Candidate from "../models/candidate.model.js";
+import fs from "fs";
+import path from "path";
 
 //CRUD candidats
 
@@ -8,7 +10,7 @@ import Candidate from "../models/candidate.model.js";
 
 export const getAllCandidate = async (req, res) => {
     try {
-        const candidates = await Candidate.find({}); 
+        const candidates = await Candidate.find({});
         res.status(200).json({ success: true, data: candidates });
 
     } catch (error) {
@@ -79,9 +81,24 @@ export const updateCandidate = async (req, res) => {
     }
 
     try {
+        const candidate = await Candidate.findById(candidateId);
+
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: "Candidat non trouvé" });
+        }
+
         const updatedData = { ...req.body };
 
+        //supprimer l'ancien CV
         if (req.file) {
+            if (candidate.cv?.filePath) {
+                const oldCvPath = path.resolve(candidate.cv.filePath);
+                if (fs.existsSync(oldCvPath)) {
+                    fs.unlinkSync(oldCvPath);
+                }
+            }
+
+            //Remplacer le CV
             updatedData.cv = {
                 fileName: req.file.filename,
                 filePath: req.file.path,
@@ -146,7 +163,25 @@ export const rejectCandidate = async (req, res) => {
 export const deleteCandidate = async (req, res) => {
     const candidateId = req.params.id;
 
+    if (!mongoose.Types.ObjectId.isValid(candidateId)) {
+        return res.status(400).json({ success: false, message: "ID invalide" });
+    }
+
     try {
+
+        const candidate = await Candidate.findById(candidateId);
+
+        if (!candidate) {
+            return res.status(404).json({ success: false, message: "Candidat non trouvé" });
+        }
+
+        //supprimer CV candidat si existe
+        if (candidate.cv?.filePath) {
+            const cvPath = path.resolve(candidate.cv.filePath);
+            if (fs.existsSync(cvPath)) {
+                fs.unlinkSync(cvPath);
+            }
+        }
         await Candidate.findByIdAndDelete(candidateId);
 
         res.status(200).json({ success: true, message: "Candidat supprimé définitivement" });
