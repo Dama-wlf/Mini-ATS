@@ -16,8 +16,8 @@ const Register = () => {
         try {
             await api.post("/auth/register", formData);
             navigate("/login");
-        } catch (err) {
-            setServerError("Échec de l'inscription. Vérifiez vos informations.");
+        } catch (error) {
+            setServerError(error.response.data.message || "Verifier vos information");
         }
     }
 
