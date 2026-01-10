@@ -1,25 +1,36 @@
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
-import {Spinner} from "./ui";
+import { Spinner } from "./ui";
 
- //Composant pour protéger les routes
-
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, minLoadingTime = 1000 }) => {
   const { isAuthenticated, isInitialized } = useSelector(
     (state) => state.auth
   );
+  const [isLoading, setIsLoading] = useState(true);
 
-  //Vérification en cours du refresh token
-  if (!isInitialized) {
+  useEffect(() => {
+    let timer;
+
+    if (isInitialized) {
+      timer = setTimeout(() => {
+        setIsLoading(false);
+      }, minLoadingTime);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isInitialized, minLoadingTime]);
+
+  if (isLoading) {
     return <Spinner />;
   }
 
-  //Non connecté, rediriger vers login
   if (!isAuthenticated) {
     return <Navigate to="/home" replace />;
   }
 
-  //Connecté, affiche les routes protége
   return <Outlet />;
 };
 
