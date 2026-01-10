@@ -37,6 +37,8 @@ export default function CandidatesList() {
   };
   const handleDelete = (id) => {
     dispatch(deleteCandidate(id));
+    dispatch(filtreCandidates());
+
     showToast("success", "Candidat suprimer avec Succes");
   };
   const handleReject = (id) => {
