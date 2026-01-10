@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../features/auth/authSlice.js";
 import Logo from "../ui/Logo.jsx";
-import { LayoutDashboard, Users, UserPlus, Columns3, FolderArchive, LogOut, Menu, X } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, Columns3, FolderArchive, LogOut, Menu, X, AlertCircle } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Tableau de bord" },
@@ -16,16 +16,61 @@ const navItems = [
 export default function Sidebar() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogoutConfirm = () => {
     dispatch(logoutUser());
+    setShowLogoutModal(false);
   };
 
-  
+  const openLogoutModal = () => {
+    setShowLogoutModal(true);
+  };
+
+  const closeLogoutModal = () => {
+    setShowLogoutModal(false);
+  };
+
   return (
     <>
+      {/* Modale de confirmation de logout */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 " onClick={closeLogoutModal}>
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 p-6">
+            <div className="flex justify-center mb-4">
+              <div className="rounded-full bg-red-100 p-3">
+                <AlertCircle className="h-8 w-8 text-red-600" />
+              </div>
+            </div>
+            
+            <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+              Se déconnecter ?
+            </h3>
+            
+            <p className="text-gray-600 text-center mb-6">
+              Êtes-vous sûr de vouloir vous déconnecter de votre compte ?
+            </p>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={closeLogoutModal}
+                className="flex-1 py-3 px-4 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleLogoutConfirm}
+                className="flex-1 py-3 px-4 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition"
+              >
+                Se déconnecter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bouton menu mobile */}
       <button
         className="fixed top-4 left-4 z-50 p-2 rounded-md bg-primary text-white sm:hidden"
         onClick={() => setIsOpen(true)}
@@ -34,8 +79,9 @@ export default function Sidebar() {
       </button>
 
       <div
-        className={`fixed inset-0 z-40 bg-black/50 transition-opacity sm:hidden ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity sm:hidden ${
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
         onClick={() => setIsOpen(false)}
       />
 
@@ -67,7 +113,7 @@ export default function Sidebar() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                onClick={() => setIsOpen(false)} // fermer menu mobile
+                onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-2 rounded-lg text-sidebarText hover:bg-primary/10 transition
                   ${isActive ? "bg-primary/20 font-semibold" : ""}`
@@ -95,10 +141,10 @@ export default function Sidebar() {
               </div>
             </div>
 
-           
+            {/* Bouton deconnecter */}
             <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 w-full text-red-400 hover:bg-red-500/10 hover:text-red-500 px-4 py-2 rounded-lg"
+              onClick={openLogoutModal}
+              className="flex items-center gap-2 w-full text-red-400 hover:bg-red-500/10 hover:text-red-500 px-4 py-2 rounded-lg transition"
             >
               <LogOut className="h-5 w-5" />
               <span className="font-medium">Se déconnecter</span>

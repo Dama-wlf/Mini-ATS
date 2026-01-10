@@ -1,15 +1,7 @@
 import { useEffect } from "react";
 import { Button } from "./ui";
 import { StatusBadge } from "./ui";
-import {
-  Download,
-  Mail,
-  Phone,
-  Briefcase,
-  Calendar,
-  StickyNote,
-  FileText,
-} from "lucide-react";
+import { Download, Mail, Phone, Briefcase, Calendar, StickyNote,FileText } from "lucide-react";
 import { format } from "date-fns";
 import fr from "date-fns/locale/fr";
 
