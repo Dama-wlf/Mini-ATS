@@ -7,11 +7,48 @@ import path from "path";
 
 
 // Récupérer tous les candidats
-
 export const getAllCandidate = async (req, res) => {
     try {
         const candidates = await Candidate.find({});
         res.status(200).json({ success: true, data: candidates });
+
+    } catch (error) {
+        console.error("Erreur récupération candidats :", error.message);
+        res.status(500).json({ success: false, message: "Erreur du serveur" });
+    }
+};
+
+// filtrer les candidats
+
+export const getCandidateFiltred = async (req, res) => {
+    try {
+        const { search, position, status, sort = "asc", page = 1, limit = 8 } = req.query;
+
+        const matchStage = { status: { $ne: "rejected" } }; 
+
+        if (search) {
+            const regex = new RegExp(search, "i");  matchStage.$or = [ { firstName: regex }, { lastName: regex }, { email: regex } ];
+        }
+
+        if (position && position !== "all") matchStage.position = position;
+        if (status && status !== "all") matchStage.status = status;
+
+        const sortStage = {
+            $sort: { firstName: sort === "asc" ? 1 : -1, lastName: sort === "asc" ? 1 : -1 },
+        };
+
+        const skipStage = { $skip: (parseInt(page) - 1) * parseInt(limit) };
+        const limitStage = { $limit: parseInt(limit) };
+
+        const aggregatePipeline = [
+            { $match: matchStage }, sortStage, skipStage, limitStage,
+        ];
+
+        const candidates = await Candidate.aggregate(aggregatePipeline);
+
+        const total = await Candidate.countDocuments(matchStage);
+
+        res.status(200).json({ success: true, data: candidates, total, totalPages: Math.ceil(total / limit), currentPage: parseInt(page) });
 
     } catch (error) {
         console.error("Erreur récupération candidats :", error.message);
@@ -51,6 +88,23 @@ export const createCandidate = async (req, res) => {
     }
 
     try {
+        // Vérifier si email ou téléphone existe déjà
+        const existing = await Candidate.findOne({ $or: [{ email }, { phone }] });
+
+        if (existing) {
+            let message;
+            if (existing.email === email && existing.phone === phone) {
+                message = "Email et téléphone existent déjà.";
+            } else if (existing.email === email) {
+                message = "Email déjà utilisé.";
+            } else {
+                message = "Numéro de Téléphone déjà utilisé.";
+            }
+
+            return res.status(400).json({ success: false, message });
+        }
+
+
         const newCandidate = new Candidate({
             ...req.body,
             cv: req.file
@@ -66,6 +120,7 @@ export const createCandidate = async (req, res) => {
         await newCandidate.save();
 
         res.status(201).json({ success: true, data: newCandidate });
+
     } catch (error) {
         console.error("Erreur création candidat :", error.message);
         res.status(500).json({ success: false, message: "Erreur du serveur" });
@@ -192,26 +247,41 @@ export const deleteCandidate = async (req, res) => {
     }
 };
 
-// Récupérer les candidats rejetés avec filtre de date
+// filtrer candidat rejeter
 export const getRejectedCandidates = async (req, res) => {
-    const { from, to } = req.query;
-
     try {
-        const filter = { status: "rejected" };
+        let { from, to, page = 1, limit = 8, search } = req.query;
+
+        page = parseInt(page);
+        limit = parseInt(limit);
+        const skip = (page - 1) * limit;
+
+        const matchStage = { status: "rejected" };
+
+        if (search) {
+            const regex = new RegExp(search, "i");
+            matchStage.$or = [ { firstName: regex }, { lastName: regex },{ email: regex } ];
+        }
 
         if (from && to) {
             const startDate = new Date(from);
             const endDate = new Date(to);
-
-            filter.rejectedAt = { $gte: startDate, $lte: endDate };
+            matchStage.rejectedAt = { $gte: startDate, $lte: endDate };
         }
 
-        const rejectedCandidates = await Candidate.find(filter).sort({ rejectedAt: -1 });
+        const aggregatePipeline = [ { $match: matchStage }, { $sort: { rejectedAt: -1 } }, { $skip: skip }, { $limit: limit }];
 
-        res.status(200).json({ success: true, data: rejectedCandidates });
+        const candidates = await Candidate.aggregate(aggregatePipeline);
+
+        // Pour le total 
+        const totalResult = await Candidate.aggregate([ { $match: matchStage }, { $count: "total" } ]);
+
+        const total = totalResult[0]?.total || 0;
+
+        res.status(200).json({ success: true, data: candidates, total, totalPages: Math.ceil(total / limit), currentPage: page });
 
     } catch (error) {
-        console.error("Erreur banque de CV :", error.message);
+        console.error("Erreur banque de CV (aggregate) :", error.message);
         res.status(500).json({ success: false, message: "Erreur du serveur" });
     }
 };

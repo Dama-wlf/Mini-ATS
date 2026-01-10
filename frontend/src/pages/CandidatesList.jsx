@@ -1,24 +1,24 @@
-import React from 'react'
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchCandidates, deleteCandidate, rejectCandidate } from "../features/candidate/candidateSlice.js";
+import { filtreCandidates, deleteCandidate, rejectCandidate } from "../features/candidate/candidateSlice.js";
 import { ActionMenu, Button, Input, StatusBadge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableEmpty } from "../components/ui";
 import CandidateProfileModal from "../components/CandidateProfilModal.jsx";
 import { useToast } from '../context/ToastContext.jsx';
-import { ArrowUpDown, UserPlus, Search } from "lucide-react";
+import { ArrowUpDown, UserPlus, Search, Loader2 } from "lucide-react";
 
 const POSITIONS = ["Frontend Developeur", "Backend Developeur", "Fullstack Developeur", "UI/UX Designer"];
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_PAGE = 10;
 
 export default function CandidatesList() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { allCandidates, loading } = useSelector((state) => state.candidates);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const { showToast } = useToast();
 
+  const { filtredCandidates, loading, totalPages } = useSelector((state) => state.candidates);
+
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [positionFilter, setPositionFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -26,51 +26,11 @@ export default function CandidatesList() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    dispatch(fetchCandidates());
-  }, [dispatch]);
+    const filters = { search, position: positionFilter, status: statusFilter, sort: sortOrder, page: currentPage, limit: ITEMS_PER_PAGE, };
+    dispatch(filtreCandidates(filters));
+  }, [dispatch, search, positionFilter, statusFilter, sortOrder, currentPage]);
 
-  const filteredCandidates = useMemo(() => {
-    let result = [...allCandidates].filter(c => c.status !== "rejected");
 
-    // recherche
-    if (search) {
-      const searchLower = search.toLowerCase();
-      result = result.filter(
-        c =>
-          c.firstName.toLowerCase().includes(searchLower) ||
-          c.lastName.toLowerCase().includes(searchLower) ||
-          c.email.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Position
-    if (positionFilter !== 'all') {
-      result = result.filter(c => c.position === positionFilter);
-    }
-
-    // Status
-    if (statusFilter !== 'all') {
-      result = result.filter(c => c.status === statusFilter);
-    }
-
-    // Trier
-    result.sort((a, b) => {
-      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
-      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
-      return sortOrder === 'asc'
-        ? nameA.localeCompare(nameB)
-        : nameB.localeCompare(nameA);
-    });
-
-    return result;
-  }, [allCandidates, search, positionFilter, statusFilter, sortOrder]);
-
-  const totalPages = Math.ceil(filteredCandidates.length / ITEMS_PER_PAGE);
-
-  const paginatedCandidates = filteredCandidates.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  );
   const handleChange = (e) => {
     setSearch(e.target.value);
     setCurrentPage(1);
@@ -81,7 +41,12 @@ export default function CandidatesList() {
   };
   const handleReject = (id) => {
     dispatch(rejectCandidate(id));
+    dispatch(filtreCandidates());
     showToast("success", "Candidat rejete avec Succes");
+  };
+
+  const handleSort = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
   return (
@@ -115,7 +80,10 @@ export default function CandidatesList() {
           focus:outline-none focus:ring-1 focus:ring-primary
           bg-background "
           value={positionFilter}
-          onChange={(e) => setPositionFilter(e.target.value)}
+          onChange={(e) => {
+            setPositionFilter(e.target.value);
+            setCurrentPage(1);
+          }}
         >
           <option value="all">Tous les postes</option>
           {POSITIONS.map((p) => (
@@ -127,7 +95,10 @@ export default function CandidatesList() {
           focus:outline-none focus:ring-1 focus:ring-primary
           bg-background "
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setCurrentPage(1);
+          }}
         >
           <option value="all">Tous les statuts</option>
           <option value="new">Nouveau</option>
@@ -135,9 +106,10 @@ export default function CandidatesList() {
           <option value="test">Teste</option>
           <option value="hired">Embauché</option>
         </select>
+
         <Button
           variant="outline"
-          onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+          onClick={handleSort}
           className="h-11"
         >
           <ArrowUpDown className="mr-2 h-4 w-4" />
@@ -146,62 +118,72 @@ export default function CandidatesList() {
       </div>
 
       {/* Table */}
-      <Table>
-        <TableHeader>
-          <tr>
-            <TableHead>Nom et Prénom</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Téléphone</TableHead>
-            <TableHead>Poste</TableHead>
-            <TableHead>Statut</TableHead>
-            <TableHead className="w-[120px]">Actions</TableHead>
-          </tr>
-        </TableHeader>
 
-        <TableBody>
-          {paginatedCandidates.length === 0 ? (
-            <TableEmpty colSpan={6} />
-          ) : (
-            paginatedCandidates.map((c) => (
-              <TableRow
-                key={c._id}
-                onClick={() => {
-                  setSelectedCandidate(c);
-                  setProfileModalOpen(true);
-                }}
-              >
-                <TableCell className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">
-                    {c.firstName[0]}
-                    {c.lastName[0]}
+        <Table>
+          <TableHeader>
+            <tr>
+              <TableHead>Nom et Prénom</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Téléphone</TableHead>
+              <TableHead>Poste</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead className="w-[120px]">Actions</TableHead>
+            </tr>
+          </TableHeader>
+
+          <TableBody>
+            {loading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-10">
+                  <div className="flex justify-center items-center gap-2">
+                    <Loader2 className="animate-spin h-6 w-6 text-primary" />
+                    <span className="text-muted-foreground">
+                      Chargement des candidats...
+                    </span>
                   </div>
-                  {c.firstName} {c.lastName}
-                </TableCell>
+                </td>
+              </tr>
+            ) : filtredCandidates.length === 0 ? (
+              <TableEmpty colSpan={6}>Aucun candidat trouvé</TableEmpty>
+            ) : (
+              filtredCandidates.map((c) => (
+                <TableRow
+                  key={c._id}
+                  onClick={() => {
+                    setSelectedCandidate(c);
+                    setProfileModalOpen(true);
+                  }}
+                >
+                  <TableCell className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-medium">
+                      {c.firstName[0]}
+                      {c.lastName[0]}
+                    </div>
+                    {c.firstName} {c.lastName}
+                  </TableCell>
 
-                <TableCell className="text-muted">{c.email}</TableCell>
-                <TableCell className="text-muted">{c.phone}</TableCell>
-                <TableCell>{c.position}</TableCell>
-                <TableCell>
-                  <StatusBadge status={c.status} />
-                </TableCell>
+                  <TableCell className="text-muted">{c.email}</TableCell>
+                  <TableCell className="text-muted">{c.phone}</TableCell>
+                  <TableCell>{c.position}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={c.status} />
+                  </TableCell>
 
-                <TableCell>
-                  <div onClick={(e) => e.stopPropagation()}>
-
-                    <ActionMenu
-                      onEdit={() => navigate(`/edit-candidate/${c._id}`)}
-                      onMoveToCVBank={() => handleReject(c._id)}
-                      onDelete={() => handleDelete(c._id)}
-                    />
-                  </div>
-                </TableCell>
-
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-
+                  <TableCell>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ActionMenu
+                        onEdit={() => navigate(`/edit-candidate/${c._id}`)}
+                        onMoveToCVBank={() => handleReject(c._id)}
+                        onDelete={() => handleDelete(c._id)}
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex items-center justify-between">
@@ -239,13 +221,12 @@ export default function CandidatesList() {
         </div>
       )}
 
-
+      {/* Modal Profil */}
       <CandidateProfileModal
         candidate={selectedCandidate}
         open={profileModalOpen}
         onOpenChange={setProfileModalOpen}
       />
-
     </div>
   );
 }

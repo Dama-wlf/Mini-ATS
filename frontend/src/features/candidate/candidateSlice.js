@@ -1,15 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-    fetchCandidatesAPI,
-    fetchCandidateByIdAPI,
-    createCandidateAPI,
-    updateCandidateAPI,
-    updateCandidateStatusAPI,
-    rejectCandidateAPI,
-    deleteCandidateAPI,
-    getRejectedCandidatesAPI,
-} from "./candidateAPI";
-
+import { filtredCandidatesAPI, fetchCandidatesAPI, fetchCandidateByIdAPI, createCandidateAPI, updateCandidateAPI,
+     updateCandidateStatusAPI,rejectCandidateAPI, deleteCandidateAPI, getRejectedCandidatesAPI } from "./candidateAPI";
 
 // Tous les candidats
 export const fetchCandidates = createAsyncThunk(
@@ -18,6 +9,19 @@ export const fetchCandidates = createAsyncThunk(
         try {
             const data = await fetchCandidatesAPI();
             return data.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message);
+        }
+    }
+);
+
+// filtre les candidats
+export const filtreCandidates = createAsyncThunk(
+    "candidates/filtred",
+    async (filters = {}, { rejectWithValue }) => {
+        try {
+            const data = await filtredCandidatesAPI(filters);
+            return data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message);
         }
@@ -45,7 +49,7 @@ export const createCandidate = createAsyncThunk(
             const data = await createCandidateAPI(formData);
             return data.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message);
+            return rejectWithValue(error.response?.data);
         }
     }
 );
@@ -105,10 +109,10 @@ export const deleteCandidate = createAsyncThunk(
 // Récupérer les candidats rejetés
 export const getRejectedCandidates = createAsyncThunk(
     "candidates/rejected",
-    async (_, { rejectWithValue }) => {
+    async (filters = {} , { rejectWithValue }) => {
         try {
-            const data = await getRejectedCandidatesAPI();
-            return data.data;
+            const data = await getRejectedCandidatesAPI(filters);
+            return data;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message);
         }
@@ -120,10 +124,13 @@ const candidateSlice = createSlice({
     name: "candidates",
     initialState: {
         allCandidates: [],
+        filtredCandidates: [],
         rejectedCandidates: [],
         selectedCandidate: null,
         loading: false,
         error: null,
+        totalPages: 1,
+        currentPage: 1,
     },
     reducers: {
         clearSelectedCandidate: (state) => {
@@ -132,7 +139,8 @@ const candidateSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // fetchCandidates
+
+         // fetchCandidates
             .addCase(fetchCandidates.pending, (state) => {
                 state.loading = true;
                 state.error = null;
@@ -142,6 +150,22 @@ const candidateSlice = createSlice({
                 state.allCandidates = action.payload;
             })
             .addCase(fetchCandidates.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+
+            // filtreCandidates
+            .addCase(filtreCandidates.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(filtreCandidates.fulfilled, (state, action) => {
+                state.loading = false;
+                state.filtredCandidates = action.payload.data;
+                state.totalPages = action.payload.totalPages;
+                state.currentPage = action.payload.currentPage;
+            })
+            .addCase(filtreCandidates.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
@@ -215,13 +239,16 @@ const candidateSlice = createSlice({
             })
             .addCase(getRejectedCandidates.fulfilled, (state, action) => {
                 state.loading = false;
-                state.rejectedCandidates = action.payload;
+                state.rejectedCandidates = action.payload.data; 
+                state.totalPages = action.payload.totalPages; 
+                state.currentPage = action.payload.currentPage;
             })
+
             .addCase(getRejectedCandidates.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
-    },
+},
 });
 
 export const { clearSelectedCandidate } = candidateSlice.actions;

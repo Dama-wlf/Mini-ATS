@@ -27,16 +27,17 @@ const candidateSchema = new mongoose.Schema(
     phone: {
       type: String,
       required: true,
+      unique: true,
     },
 
     position: {
       type: String,
       required: true,
-      trim: true, // Poste visé
+      trim: true, 
     },
 
     note: {
-      type: String, // Commentaire optionnel
+      type: String, 
     },
 
     cv: {

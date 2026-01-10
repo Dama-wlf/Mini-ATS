@@ -1,8 +1,24 @@
 import api from "../../services/api";
 
+
 // Récupérer tous les candidats
 export const fetchCandidatesAPI = async () => {
     const res = await api.get("/candidates");
+    return res.data;
+};
+
+// Filtrer les candidats
+export const filtredCandidatesAPI = async ({ search = "", position = "all", status = "all", sort = "asc", page = 1, limit = 8, } = {}) => {
+    const params = new URLSearchParams();
+
+    if (search) params.append("search", search);
+    if (position) params.append("position", position);
+    if (status) params.append("status", status);
+    if (sort) params.append("sort", sort);
+    if (page) params.append("page", page);
+    if (limit) params.append("limit", limit);
+
+    const res = await api.get(`/candidates/filtred?${params.toString()}`);
     return res.data;
 };
 
@@ -47,7 +63,17 @@ export const deleteCandidateAPI = async (id) => {
 };
 
 // Récupérer les candidats rejetés (Banque de CV)
-export const getRejectedCandidatesAPI = async () => {
-    const res = await api.get("/candidates/rejected/all");
+export const getRejectedCandidatesAPI = async({ page = 1, limit = 8, search = "", from = "", to = "", }) => {
+  const params = new URLSearchParams();
+
+    if (search) params.append("search", search);
+    if (from) params.append("from", from);
+    if (to) params.append("to", to);
+    if (page) params.append("page", page);
+    if (limit) params.append("limit", limit);
+
+    const res = await api.get(`/candidates/rejected/all?${params.toString()}`);
     return res.data;
 };
+
+

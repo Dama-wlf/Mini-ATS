@@ -3,6 +3,7 @@ import uploadCv from "../middleware/uploadCv.middleware.js";
 import {
      getCandidate,
      getAllCandidate, 
+     getCandidateFiltred,
      createCandidate,
      updateCandidate,
      updateCandidateStatus, 
@@ -14,7 +15,9 @@ import protect from "../middleware/auth.middleware.js";
 const router = express.Router();
 router.use(protect);
 
+router.get("/rejected/all", getRejectedCandidates);
 router.get("/", getAllCandidate);
+router.get("/filtred",getCandidateFiltred );
 router.get("/:id", getCandidate);
 router.post("/", uploadCv.single("cv"), createCandidate);
 router.put("/:id", uploadCv.single("cv"), updateCandidate);
