@@ -3,16 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logoutUser } from "../../features/auth/authSlice.js";
 import Logo from "../ui/Logo.jsx";
-import {
-  LayoutDashboard,
-  Users,
-  UserPlus,
-  Columns3,
-  FolderArchive,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, Columns3, FolderArchive, LogOut, Menu, X } from "lucide-react";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Tableau de bord" },

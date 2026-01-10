@@ -18,7 +18,7 @@ export default function CandidateForm() {
 
   const { selectedCandidate, loading } = useSelector((state) => state.candidates);
 
-  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting }, } = useForm({
+  const { register, handleSubmit, reset, setError, formState: { errors, isSubmitting }, } = useForm({
     mode: "onSubmit",
     defaultValues: {
       firstName: "",
@@ -77,14 +77,25 @@ export default function CandidateForm() {
 
     if (cvFile) formData.append("cv", cvFile);
 
-    if (isEditing) {
-      await dispatch(updateCandidate({ id, formData }));
-    } else {
-      await dispatch(createCandidate(formData));
+    try {
+      if (isEditing) {
+        await dispatch(updateCandidate({ id, formData })).unwrap();
+      } else {
+        await dispatch(createCandidate(formData)).unwrap();
+      }
+
+      showToast("success", `Candidat ${isEditing ? "mis à jour" : "créé"} avec succès !`);
+      navigate("/candidates");
+    } catch (error) {
+      console.log("Erreur backend reçue :", error);
+      if (error.field) {
+        setError(error.field, { type: "server", message: error.message });
+      } else {
+
+        showToast("error", error.message || "Erreur lors de la création");
+      }
     }
 
-    showToast("success", `Candidat ${isEditing ? "mis à jour" : "créé"} avec succès !`);
-    navigate("/candidates");
   };
 
   return (
