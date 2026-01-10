@@ -24,6 +24,14 @@ export default function LandingPage() {
     },
   ];
 
+  const stats = [
+    { label: "Candidats", value: 128 },
+    { label: "Entretiens", value: 34 },
+    { label: "Tests", value: 21 },
+    { label: "Embauchés", value: 9 },
+  ];
+
+
   return (
     <div className="min-h-screen bg-background">
       {/* NAVBAR */}
@@ -39,7 +47,7 @@ export default function LandingPage() {
               Connexion
             </Link>
             <Link
-              to="/login"
+              to="/register"
               className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:opacity-90"
             >
               Commencer <ArrowRight className="w-4 h-4" />
@@ -100,13 +108,14 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <div className="rounded-2xl border bg-muted/20 p-6 shadow-xl">
             <div className="grid grid-cols-4 gap-4 mb-6">
-              {["Candidats", "Entretiens", "Tests", "Embauchés"].map((label) => (
-                <div key={label} className="bg-background border rounded-lg p-4">
-                  <p className="text-sm text-muted-foreground">{label}</p>
-                  <p className="text-2xl font-bold mt-1">12</p>
+              {stats.map((item) => (
+                <div key={item.label} className="bg-background border rounded-lg p-4">
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                  <p className="text-2xl font-bold mt-1">{item.value}</p>
                 </div>
               ))}
             </div>
+
 
             <div className="grid grid-cols-4 gap-4">
               {["Nouveau", "Entretien", "Test", "Validé"].map((step) => (
